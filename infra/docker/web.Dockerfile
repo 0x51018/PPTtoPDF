@@ -7,6 +7,9 @@ ARG NEXT_PUBLIC_API_BASE_URL=""
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 
 RUN corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter @pptx-to-pdf/web build
+RUN mkdir -p apps/web/.next/standalone/apps/web/.next \
+  && cp -R apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static \
+  && if [ -d apps/web/public ]; then cp -R apps/web/public apps/web/.next/standalone/apps/web/public; fi
 
 EXPOSE 3000
 CMD ["pnpm", "--filter", "@pptx-to-pdf/web", "start"]
