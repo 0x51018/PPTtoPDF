@@ -1,4 +1,3 @@
-import "./globals.css";
 import UploadForm from "../components/UploadForm";
 
 export default function HomePage() {

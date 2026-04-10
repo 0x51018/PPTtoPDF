@@ -8,7 +8,7 @@ export const createHealthRouter = (tmpRoot: string) => {
   router.get("/health", async (_req, res) => {
     const [libreOfficeOk, tempDirWritable] = await Promise.all([checkSofficeAvailable(), ensureTmpWritable(tmpRoot)]);
     res.json({
-      ok: true,
+      ok: libreOfficeOk && tempDirWritable,
       libreOffice: libreOfficeOk ? "available" : "unavailable",
       tempDirWritable
     });

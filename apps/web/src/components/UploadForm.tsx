@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Dropzone from "./Dropzone";
 import StatusPanel from "./StatusPanel";
 import { uploadAndConvert } from "../lib/api";
@@ -18,6 +18,14 @@ export default function UploadForm() {
 
   const disabledConvert = useMemo(() => !file || status === "uploading" || status === "converting", [file, status]);
 
+  useEffect(() => {
+    return () => {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
+    };
+  }, [downloadUrl]);
+
   const onSelectFile = (selected: File) => {
     if (!isValidPptx(selected)) {
       setStatus("error");
@@ -25,6 +33,9 @@ export default function UploadForm() {
       return;
     }
 
+    if (downloadUrl) {
+      URL.revokeObjectURL(downloadUrl);
+    }
     setFile(selected);
     setStatus("file-selected");
     setErrorMessage("");
@@ -36,9 +47,12 @@ export default function UploadForm() {
 
     try {
       setStatus("uploading");
+      setErrorMessage("");
       const blob = await uploadAndConvert(file);
-      setStatus("converting");
       const url = URL.createObjectURL(blob);
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
       setDownloadUrl(url);
       setStatus("success");
     } catch (error) {

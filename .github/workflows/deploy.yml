@@ -1,0 +1,97 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    environment:
+      name: production
+
+    steps:
+      - name: Prepare SSH material
+        env:
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy on home server
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_REPO: ${{ github.server_url }}/${{ github.repository }}.git
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_PATH"
+          test -n "$DEPLOY_REPO"
+          test -n "$DEPLOY_USER"
+
+          escaped_path="$(printf '%q' "$DEPLOY_PATH")"
+          escaped_repo="$(printf '%q' "$DEPLOY_REPO")"
+
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -p "${DEPLOY_PORT:-22}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "set -euo pipefail; \
+             if [ ! -d ${escaped_path}/.git ]; then \
+               mkdir -p \"\$(dirname ${escaped_path})\"; \
+               git clone --branch main ${escaped_repo} ${escaped_path}; \
+             fi; \
+             cd ${escaped_path}; \
+             git fetch origin main --depth=1; \
+             git checkout -B main origin/main; \
+             export APP_DIR=${escaped_path}; \
+             bash ${escaped_path}/scripts/deploy-home.sh"

@@ -11,6 +11,8 @@ export const mapApiError = (code?: string) => {
     case "CONVERSION_FAILED":
     case "OUTPUT_NOT_FOUND":
       return "PPTX를 PDF로 변환하지 못했습니다.";
+    case "LIBREOFFICE_NOT_FOUND":
+      return "서버에 LibreOffice가 없어 지금은 변환할 수 없습니다.";
     default:
       return "요청 처리 중 오류가 발생했습니다.";
   }

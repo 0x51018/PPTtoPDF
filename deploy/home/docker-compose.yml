@@ -1,0 +1,72 @@
+services:
+  web:
+    container_name: ppttopdf-web
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL-}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - proxy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then((response)=>{if(!response.ok)process.exit(1);}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.ppttopdf.rule=Host(`${PPTTOPDF_HOST}`)
+      - traefik.http.routers.ppttopdf.entrypoints=websecure
+      - traefik.http.routers.ppttopdf.tls=true
+      - traefik.http.routers.ppttopdf.tls.certresolver=le
+      - traefik.http.routers.ppttopdf.priority=10
+      - traefik.http.services.ppttopdf.loadbalancer.server.port=3000
+
+  api:
+    container_name: ppttopdf-api
+    build:
+      context: ../..
+      dockerfile: infra/docker/api.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./api.env
+    networks:
+      - proxy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/api/health').then(async (response)=>{const body=await response.json(); if(!response.ok || !body.ok) process.exit(1);}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.ppttopdf-api.rule=Host(`${PPTTOPDF_HOST}`) && PathPrefix(`/api`)
+      - traefik.http.routers.ppttopdf-api.entrypoints=websecure
+      - traefik.http.routers.ppttopdf-api.tls=true
+      - traefik.http.routers.ppttopdf-api.tls.certresolver=le
+      - traefik.http.routers.ppttopdf-api.priority=100
+      - traefik.http.services.ppttopdf-api.loadbalancer.server.port=3001
+
+networks:
+  proxy:
+    external: true
+    name: proxy

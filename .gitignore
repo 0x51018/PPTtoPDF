@@ -1,8 +1,10 @@
 node_modules
 .pnpm-store
 .next
+.turbo
 dist
 .env
 .DS_Store
 *.log
 .tmp
+*.tsbuildinfo

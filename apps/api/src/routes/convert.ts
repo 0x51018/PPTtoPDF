@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import { ERROR_CODES } from "@pptx-to-pdf/shared";
@@ -49,9 +49,11 @@ export const createConvertRouter = ({
     const startedAt = Date.now();
     let baseDir = "";
     let jobId = "";
+    let acquired = false;
 
     try {
       limiter.acquire();
+      acquired = true;
       const file = req.file;
       if (!file) throw new AppError(400, ERROR_CODES.NO_FILE, "파일이 없습니다.");
 
@@ -93,11 +95,17 @@ export const createConvertRouter = ({
       });
       next(error);
     } finally {
-      limiter.release();
+      if (acquired) {
+        limiter.release();
+      }
     }
   });
 
-  router.use((error: unknown, _req: unknown, res: { status: (status: number) => { json: (body: unknown) => void } }) => {
+  router.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) {
+      return next(error);
+    }
+
     if (error instanceof AppError) {
       return res.status(error.status).json(errorResponse(error.code, humanizeMessage(error)));
     }
