@@ -7,6 +7,9 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL-}
     restart: unless-stopped
+    environment:
+      - HOSTNAME=0.0.0.0
+      - WEB_PORT=3000
     depends_on:
       api:
         condition: service_healthy

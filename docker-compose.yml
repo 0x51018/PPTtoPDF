@@ -20,6 +20,7 @@ services:
     env_file:
       - .env
     environment:
+      - HOSTNAME=0.0.0.0
       - WEB_PORT=3000
     ports:
       - "3000:3000"
