@@ -57,9 +57,9 @@ export default function Dropzone({ disabled = false, isDragging, onFile, onBrows
       role="button"
       tabIndex={disabled ? -1 : 0}
     >
-      <span className="dropzone-badge">PPTX 1개</span>
-      <strong>파일을 끌어다 놓거나 클릭해서 선택하세요</strong>
-      <p>업로드 상태와 변환 진행률을 바로 보여드립니다.</p>
+      <span className="dropzone-badge">PPTX</span>
+      <strong>파일을 끌어다 놓거나 선택하세요</strong>
+      <p>.pptx 파일 1개를 업로드할 수 있습니다.</p>
     </div>
   );
 }

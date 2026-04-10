@@ -5,24 +5,22 @@ export default function HomePage() {
     <main className="page-shell">
       <section className="hero-panel">
         <div className="hero-copy">
-          <p className="hero-tag">PPTX to PDF studio</p>
-          <h1>업로드 상태부터 PDF 완료까지, 지금 어디까지 됐는지 바로 보이는 변환 화면</h1>
-          <p className="hero-description">
-            파일을 고르면 버튼이 즉시 활성화되고, 업로드 진행률과 서버 변환 상태를 단계별로 확인할 수 있습니다.
-          </p>
+          <p className="hero-tag">PPTX to PDF</p>
+          <h1>PPTX를 PDF로 간편하게 변환하세요</h1>
+          <p className="hero-description">.pptx 파일을 업로드하면 PDF로 변환해 바로 다운로드할 수 있습니다.</p>
           <div className="hero-points">
-            <span>1 file at a time</span>
-            <span>Upload progress</span>
-            <span>PDF ready download</span>
+            <span>.pptx 업로드</span>
+            <span>빠른 변환</span>
+            <span>PDF 다운로드</span>
           </div>
         </div>
 
         <div className="hero-note">
-          <p className="eyebrow">What changed</p>
+          <p className="eyebrow">안내</p>
           <ul>
-            <li>선택 상태가 카드로 즉시 보입니다.</li>
-            <li>업로드와 변환이 서로 다른 단계로 표시됩니다.</li>
-            <li>다운로드 버튼은 성공 시점에만 나타납니다.</li>
+            <li>.pptx 파일만 업로드할 수 있습니다.</li>
+            <li>파일은 한 번에 1개씩 변환됩니다.</li>
+            <li>변환이 끝나면 바로 다운로드할 수 있습니다.</li>
           </ul>
         </div>
       </section>

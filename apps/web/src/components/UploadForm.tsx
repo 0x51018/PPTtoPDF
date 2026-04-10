@@ -112,7 +112,7 @@ export default function UploadForm() {
   };
 
   const primaryLabel = (() => {
-    if (!file) return "파일을 먼저 선택하세요";
+    if (!file) return "파일을 선택하세요";
     if (status === "uploading") return `업로드 중 ${uploadProgress}%`;
     if (status === "converting") return "PDF 변환 중...";
     if (status === "success") return "변환 완료";
@@ -124,11 +124,11 @@ export default function UploadForm() {
       <div className="upload-card">
         <div className="upload-card-head">
           <div>
-            <p className="eyebrow">Upload Workspace</p>
-            <h2>PPTX 한 개를 PDF로 정리합니다</h2>
+            <p className="eyebrow">파일 업로드</p>
+            <h2>PPTX 파일을 PDF로 변환합니다</h2>
           </div>
           <button className="ghost-button" onClick={() => fileInputRef.current?.click()} type="button">
-            파일 찾기
+            파일 선택
           </button>
         </div>
 
@@ -150,7 +150,7 @@ export default function UploadForm() {
 
         <div className="selection-card">
           <div className="selection-copy">
-            <p className="eyebrow">Selected File</p>
+            <p className="eyebrow">선택한 파일</p>
             {file ? (
               <>
                 <strong>{file.name}</strong>
@@ -158,13 +158,13 @@ export default function UploadForm() {
               </>
             ) : (
               <>
-                <strong>아직 선택된 파일이 없습니다</strong>
-                <span>.pptx 파일을 고르면 변환 시작 버튼이 활성화됩니다.</span>
+                <strong>선택된 파일이 없습니다</strong>
+                <span>PPTX 파일을 선택해주세요.</span>
               </>
             )}
           </div>
           <div className="selection-badges">
-            <span className={`badge ${file ? "is-ready" : ""}`}>{file ? "Ready" : "Waiting"}</span>
+            <span className={`badge ${file ? "is-ready" : ""}`}>{file ? "준비됨" : "대기 중"}</span>
             {file ? (
               <button className="text-button" disabled={isBusy} onClick={onClearFile} type="button">
                 선택 해제
@@ -186,7 +186,7 @@ export default function UploadForm() {
               PDF 다운로드
             </a>
           ) : (
-            <span className="action-hint">{file ? "선택이 끝났으면 변환을 시작하세요." : "먼저 PPTX 파일을 선택해주세요."}</span>
+            <span className="action-hint">{file ? "변환을 시작할 수 있습니다." : "PPTX 파일을 선택해주세요."}</span>
           )}
         </div>
       </div>

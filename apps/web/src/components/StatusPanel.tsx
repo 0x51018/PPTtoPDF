@@ -27,16 +27,16 @@ const getSummary = ({ status, fileName, errorMessage }: Props) => {
   if (status === "success") {
     return {
       tone: "success",
-      title: "PDF가 준비되었습니다",
-      detail: fileName ? `${fileName} 변환이 완료됐습니다. 바로 다운로드할 수 있어요.` : "변환이 완료됐습니다."
+      title: "변환이 완료되었습니다",
+      detail: fileName ? `${fileName} 파일을 PDF로 변환했습니다.` : "PDF 파일이 준비되었습니다."
     };
   }
 
   if (status === "converting") {
     return {
       tone: "neutral",
-      title: "PDF를 생성하고 있습니다",
-      detail: "업로드는 끝났고, 서버에서 슬라이드를 PDF로 정리하는 중입니다."
+      title: "PDF로 변환 중입니다",
+      detail: "잠시만 기다려주세요."
     };
   }
 
@@ -44,22 +44,22 @@ const getSummary = ({ status, fileName, errorMessage }: Props) => {
     return {
       tone: "neutral",
       title: "파일을 업로드하는 중입니다",
-      detail: "업로드가 끝나면 바로 PDF 변환 단계로 넘어갑니다."
+      detail: "업로드가 완료되면 자동으로 변환을 시작합니다."
     };
   }
 
   if (status === "ready") {
     return {
       tone: "ready",
-      title: "파일 선택이 완료되었습니다",
-      detail: fileName ? `${fileName} 준비 완료. 이제 변환 시작 버튼이 활성화됩니다.` : "이제 변환을 시작할 수 있습니다."
+      title: "파일이 준비되었습니다",
+      detail: fileName ? `${fileName}` : "변환을 시작할 수 있습니다."
     };
   }
 
   return {
     tone: "neutral",
-    title: "PPTX를 먼저 골라주세요",
-    detail: "파일을 선택하면 버튼이 바로 활성화되고, 진행 상태가 아래에 표시됩니다."
+    title: "파일을 선택해주세요",
+    detail: "PPTX 파일을 업로드해 변환을 시작할 수 있습니다."
   };
 };
 
@@ -71,7 +71,7 @@ export default function StatusPanel(props: Props) {
   return (
     <div className={`status-panel tone-${summary.tone}`}>
       <div className="status-copy">
-        <p className="status-kicker">Progress</p>
+        <p className="status-kicker">진행 상태</p>
         <h3>{summary.title}</h3>
         <p>{summary.detail}</p>
       </div>
