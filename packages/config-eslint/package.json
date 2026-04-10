@@ -1,0 +1,6 @@
+{
+  "name": "@pptx-to-pdf/config-eslint",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js"
+}

@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    env_file:
+      - .env
+    environment:
+      - API_PORT=3001
+      - TMP_ROOT=/tmp/pptx-to-pdf
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
