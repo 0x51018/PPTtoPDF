@@ -1,22 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Dropzone from "./Dropzone";
 import StatusPanel from "./StatusPanel";
 import { uploadAndConvert } from "../lib/api";
 import { mapApiError } from "../lib/errors";
 
-type UIStatus = "idle" | "file-selected" | "uploading" | "converting" | "success" | "error";
+type UIStatus = "idle" | "ready" | "uploading" | "converting" | "success" | "error";
 
 const isValidPptx = (file: File) => file.name.toLowerCase().endsWith(".pptx");
+const formatBytes = (size: number) => {
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 export default function UploadForm() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UIStatus>("idle");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-
-  const disabledConvert = useMemo(() => !file || status === "uploading" || status === "converting", [file, status]);
+  const isBusy = status === "uploading" || status === "converting";
+  const canConvert = Boolean(file) && !isBusy;
 
   useEffect(() => {
     return () => {
@@ -28,7 +38,9 @@ export default function UploadForm() {
 
   const onSelectFile = (selected: File) => {
     if (!isValidPptx(selected)) {
+      setFile(null);
       setStatus("error");
+      setUploadProgress(0);
       setErrorMessage(".pptx 파일만 업로드할 수 있습니다.");
       return;
     }
@@ -36,10 +48,41 @@ export default function UploadForm() {
     if (downloadUrl) {
       URL.revokeObjectURL(downloadUrl);
     }
+
     setFile(selected);
-    setStatus("file-selected");
+    setStatus("ready");
+    setUploadProgress(0);
     setErrorMessage("");
     setDownloadUrl(null);
+    setIsDragging(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    if (selected) {
+      onSelectFile(selected);
+    }
+  };
+
+  const onClearFile = () => {
+    if (downloadUrl) {
+      URL.revokeObjectURL(downloadUrl);
+    }
+
+    setFile(null);
+    setStatus("idle");
+    setUploadProgress(0);
+    setErrorMessage("");
+    setDownloadUrl(null);
+    setIsDragging(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const onConvert = async () => {
@@ -47,35 +90,108 @@ export default function UploadForm() {
 
     try {
       setStatus("uploading");
+      setUploadProgress(0);
       setErrorMessage("");
-      const blob = await uploadAndConvert(file);
+      const blob = await uploadAndConvert(file, {
+        onPhaseChange: (phase) => setStatus(phase),
+        onUploadProgress: (progress) => setUploadProgress(progress)
+      });
       const url = URL.createObjectURL(blob);
       if (downloadUrl) {
         URL.revokeObjectURL(downloadUrl);
       }
       setDownloadUrl(url);
+      setUploadProgress(100);
       setStatus("success");
     } catch (error) {
       const code = error instanceof Error ? error.message : "UNKNOWN";
+      setUploadProgress(0);
       setErrorMessage(mapApiError(code));
       setStatus("error");
     }
   };
 
+  const primaryLabel = (() => {
+    if (!file) return "파일을 먼저 선택하세요";
+    if (status === "uploading") return `업로드 중 ${uploadProgress}%`;
+    if (status === "converting") return "PDF 변환 중...";
+    if (status === "success") return "변환 완료";
+    return "변환 시작";
+  })();
+
   return (
-    <section>
-      <Dropzone onFile={onSelectFile} />
-      <input type="file" accept=".pptx" onChange={(e) => e.target.files?.[0] && onSelectFile(e.target.files[0])} />
-      {file ? <p>선택한 파일: {file.name}</p> : null}
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <button className="primary" disabled={disabledConvert} onClick={onConvert}>변환 시작</button>
-        {downloadUrl && (
-          <a href={downloadUrl} download={`${file?.name?.replace(/\.pptx$/i, "") ?? "converted"}.pdf`}>
-            <button>PDF 다운로드</button>
-          </a>
-        )}
+    <section className="upload-shell">
+      <div className="upload-card">
+        <div className="upload-card-head">
+          <div>
+            <p className="eyebrow">Upload Workspace</p>
+            <h2>PPTX 한 개를 PDF로 정리합니다</h2>
+          </div>
+          <button className="ghost-button" onClick={() => fileInputRef.current?.click()} type="button">
+            파일 찾기
+          </button>
+        </div>
+
+        <Dropzone
+          disabled={isBusy}
+          isDragging={isDragging}
+          onBrowse={() => fileInputRef.current?.click()}
+          onDraggingChange={setIsDragging}
+          onFile={onSelectFile}
+        />
+
+        <input
+          accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+          className="visually-hidden"
+          onChange={onFileChange}
+          ref={fileInputRef}
+          type="file"
+        />
+
+        <div className="selection-card">
+          <div className="selection-copy">
+            <p className="eyebrow">Selected File</p>
+            {file ? (
+              <>
+                <strong>{file.name}</strong>
+                <span>{formatBytes(file.size)}</span>
+              </>
+            ) : (
+              <>
+                <strong>아직 선택된 파일이 없습니다</strong>
+                <span>.pptx 파일을 고르면 변환 시작 버튼이 활성화됩니다.</span>
+              </>
+            )}
+          </div>
+          <div className="selection-badges">
+            <span className={`badge ${file ? "is-ready" : ""}`}>{file ? "Ready" : "Waiting"}</span>
+            {file ? (
+              <button className="text-button" disabled={isBusy} onClick={onClearFile} type="button">
+                선택 해제
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="action-row">
+          <button className="primary-button" disabled={!canConvert} onClick={onConvert} type="button">
+            {primaryLabel}
+          </button>
+          {downloadUrl ? (
+            <a
+              className="secondary-button"
+              download={`${file?.name?.replace(/\.pptx$/i, "") ?? "converted"}.pdf`}
+              href={downloadUrl}
+            >
+              PDF 다운로드
+            </a>
+          ) : (
+            <span className="action-hint">{file ? "선택이 끝났으면 변환을 시작하세요." : "먼저 PPTX 파일을 선택해주세요."}</span>
+          )}
+        </div>
       </div>
-      <StatusPanel status={status} errorMessage={errorMessage} />
+
+      <StatusPanel errorMessage={errorMessage} fileName={file?.name} progress={uploadProgress} status={status} />
     </section>
   );
 }

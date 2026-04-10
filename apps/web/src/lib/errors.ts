@@ -13,6 +13,10 @@ export const mapApiError = (code?: string) => {
       return "PPTX를 PDF로 변환하지 못했습니다.";
     case "LIBREOFFICE_NOT_FOUND":
       return "서버에 LibreOffice가 없어 지금은 변환할 수 없습니다.";
+    case "NETWORK_ERROR":
+      return "서버에 연결하지 못했습니다. 네트워크 상태를 확인해주세요.";
+    case "REQUEST_ABORTED":
+      return "요청이 중단되었습니다. 다시 시도해주세요.";
     default:
       return "요청 처리 중 오류가 발생했습니다.";
   }
