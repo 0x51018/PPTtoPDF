@@ -1,26 +1,27 @@
 import UploadForm from "../components/UploadForm";
+import { i18n } from "../lib/i18n";
 
 export default function HomePage() {
   return (
     <main className="page-shell">
       <section className="hero-panel">
         <div className="hero-copy">
-          <p className="hero-tag">PPTX to PDF</p>
-          <h1>PPTX를 PDF로 간편하게 변환하세요</h1>
-          <p className="hero-description">.pptx 파일을 업로드하면 PDF로 변환해 바로 다운로드할 수 있습니다.</p>
+          <p className="hero-tag">{i18n.heroTag}</p>
+          <h1>{i18n.heroHeading}</h1>
+          <p className="hero-description">{i18n.heroDescription}</p>
           <div className="hero-points">
-            <span>.pptx 업로드</span>
-            <span>빠른 변환</span>
-            <span>PDF 다운로드</span>
+            <span>{i18n.heroPoint1}</span>
+            <span>{i18n.heroPoint2}</span>
+            <span>{i18n.heroPoint3}</span>
           </div>
         </div>
 
         <div className="hero-note">
-          <p className="eyebrow">안내</p>
+          <p className="eyebrow">{i18n.noticeLabel}</p>
           <ul>
-            <li>.pptx 파일만 업로드할 수 있습니다.</li>
-            <li>파일은 한 번에 1개씩 변환됩니다.</li>
-            <li>변환이 끝나면 바로 다운로드할 수 있습니다.</li>
+            <li>{i18n.notice1}</li>
+            <li>{i18n.notice2}</li>
+            <li>{i18n.notice3}</li>
           </ul>
         </div>
       </section>
