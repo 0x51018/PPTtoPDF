@@ -1,17 +1,17 @@
 # PPTX to PDF Converter
 
-개인용 홈서버에서 쉽게 실행할 수 있는 PPTX → PDF 변환 웹서비스입니다. 사용자가 웹에서 `.pptx` 파일 1개를 업로드하면 API 서버가 LibreOffice headless 모드로 PDF를 생성하고 즉시 다운로드합니다.
+A self-hosted web service for converting PPTX files to PDF. Upload a `.pptx` file through the web UI, and the API server converts it with LibreOffice in headless mode and returns the PDF for immediate download.
 
-## 요구 사항
+## Requirements
 
 - Node.js 20+
 - pnpm
-- Docker / Docker Compose (컨테이너 실행 시)
-- 로컬 실행 시 LibreOffice(soffice) 설치 필요
+- Docker / Docker Compose (for containerized deployment)
+- LibreOffice (`soffice`) installed locally when running without Docker
 
 ## Docker
 
-API 컨테이너는 LibreOffice가 포함되어 있으며 `soffice`를 사용해 변환합니다.
+The API container bundles LibreOffice and uses `soffice` for conversion.
 
 ## Docker Compose
 
@@ -22,7 +22,7 @@ docker compose up --build
 - Web: http://localhost:3000
 - API: http://localhost:3001
 
-## 로컬 실행 방법
+## Local Development
 
 ```bash
 cp .env.example .env
@@ -32,48 +32,72 @@ pnpm --filter @pptx-to-pdf/shared build
 pnpm dev
 ```
 
-## 환경 변수
+## Environment Variables
 
-`.env.example` 참고:
+See `.env.example`:
 
-- `WEB_PORT`: 웹 포트
-- `API_PORT`: API 포트
-- `NEXT_PUBLIC_API_BASE_URL`: 웹에서 호출할 API 주소
-- `MAX_FILE_SIZE_MB`: 업로드 최대 용량(MB)
-- `MAX_CONCURRENT_JOBS`: 동시 변환 수
-- `CONVERSION_TIMEOUT_MS`: 작업 타임아웃(ms)
-- `TMP_ROOT`: 임시 작업 루트
+| Variable | Description |
+|---|---|
+| `WEB_PORT` | Web server port |
+| `API_PORT` | API server port |
+| `NEXT_PUBLIC_API_BASE_URL` | API base URL used by the web app |
+| `MAX_FILE_SIZE_MB` | Maximum upload size in MB |
+| `MAX_CONCURRENT_JOBS` | Maximum concurrent conversion jobs |
+| `CONVERSION_TIMEOUT_MS` | Conversion timeout in milliseconds |
+| `TMP_ROOT` | Temporary working directory root |
 
-## 폴더 구조
+## Language / Locale
 
-- `apps/web`: Next.js 업로드 UI
-- `apps/api`: Express API + LibreOffice 변환
-- `packages/shared`: 공통 상수/타입
-- `infra/docker`: Dockerfile
-- `scripts`: 개발 보조 스크립트
+The web UI supports English (`en`) and Korean (`ko`). The default language is **English**.
 
-## API 사용법
+To change the language, set the `NEXT_PUBLIC_LOCALE` build argument (or environment variable) before building:
+
+```bash
+# English (default)
+NEXT_PUBLIC_LOCALE=en docker compose up --build
+
+# Korean
+NEXT_PUBLIC_LOCALE=ko docker compose up --build
+```
+
+When running locally:
+
+```bash
+NEXT_PUBLIC_LOCALE=ko pnpm dev
+```
+
+## Folder Structure
+
+- `apps/web` — Next.js upload UI
+- `apps/api` — Express API + LibreOffice conversion
+- `packages/shared` — Shared constants and types
+- `infra/docker` — Dockerfiles
+- `scripts` — Development and deployment helper scripts
+
+## API Reference
 
 ### `POST /api/convert`
 
-- `multipart/form-data`
-- field 이름: `file`
-- `.pptx`만 허용, 최대 50MB
+- Content type: `multipart/form-data`
+- Field name: `file`
+- Accepts `.pptx` only, up to 50 MB
 
-성공:
+**Success:**
 - `200 application/pdf`
 - `Content-Disposition: attachment`
 
-실패:
-- `400` 잘못된 파일/요청
-- `413` 용량 초과
-- `422` 변환 실패/타임아웃
-- `429` 동시 작업 수 초과
-- `500` 서버 오류
+**Errors:**
+| Status | Meaning |
+|---|---|
+| `400` | Invalid file or request |
+| `413` | File too large |
+| `422` | Conversion failed or timed out |
+| `429` | Too many concurrent jobs |
+| `500` | Internal server error |
 
 ### `GET /api/health`
 
-예시 응답:
+Example response:
 
 ```json
 {
@@ -83,23 +107,24 @@ pnpm dev
 }
 ```
 
-## 트러블슈팅
+## Troubleshooting
 
-- `soffice not found`
-  - 로컬 환경에 LibreOffice 설치 여부 확인
-  - Docker 사용 시 API 컨테이너 재빌드
-- 폰트 누락으로 인한 레이아웃 차이
-  - API 컨테이너에 필요한 폰트 패키지 추가 설치
-- 변환 timeout
-  - `CONVERSION_TIMEOUT_MS` 증가
-  - 파일 크기/복잡도 확인
+- **`soffice not found`**
+  - Verify LibreOffice is installed in your local environment
+  - When using Docker, rebuild the API container
+- **Font/layout differences**
+  - Install additional font packages inside the API container
+- **Conversion timeout**
+  - Increase `CONVERSION_TIMEOUT_MS`
+  - Check the file size and complexity
 
-## 제한 사항
+## Limitations
 
-- 애니메이션/전환 효과/매크로는 PDF에서 재현되지 않음
-- PowerPoint 렌더링과 완전히 동일하지 않을 수 있음
-- DB/로그인/영구 저장 미지원
+- Animations, transitions, and macros are not reproduced in the PDF
+- Rendering may differ slightly from PowerPoint
+- No database, login, or persistent storage
 
-## 확장 아이디어
+## Extension Ideas
 
-LibreOffice PDF filter parameter를 사용하면 이미지 품질, PDF/A, 워터마크, 범위 선택 등으로 확장할 수 있습니다.
+Use LibreOffice PDF filter parameters to add image quality control, PDF/A compliance, watermarks, page range selection, and more.
+

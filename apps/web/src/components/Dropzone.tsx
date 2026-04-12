@@ -1,6 +1,7 @@
 "use client";
 
 import { DragEvent } from "react";
+import { i18n } from "../lib/i18n";
 
 type Props = {
   disabled?: boolean;
@@ -58,8 +59,8 @@ export default function Dropzone({ disabled = false, isDragging, onFile, onBrows
       tabIndex={disabled ? -1 : 0}
     >
       <span className="dropzone-badge">PPTX</span>
-      <strong>파일을 끌어다 놓거나 선택하세요</strong>
-      <p>.pptx 파일 1개를 업로드할 수 있습니다.</p>
+      <strong>{i18n.dropzoneHeading}</strong>
+      <p>{i18n.dropzoneHint}</p>
     </div>
   );
 }

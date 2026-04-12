@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { i18n } from "../lib/i18n";
 
 const sans = Manrope({
   subsets: ["latin"],
@@ -15,7 +16,7 @@ const serif = Cormorant_Garamond({
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang={i18n.htmlLang}>
       <body className={`${sans.variable} ${serif.variable}`}>{children}</body>
     </html>
   );

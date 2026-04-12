@@ -5,6 +5,7 @@ import Dropzone from "./Dropzone";
 import StatusPanel from "./StatusPanel";
 import { uploadAndConvert } from "../lib/api";
 import { mapApiError } from "../lib/errors";
+import { i18n } from "../lib/i18n";
 
 type UIStatus = "idle" | "ready" | "uploading" | "converting" | "success" | "error";
 
@@ -41,7 +42,7 @@ export default function UploadForm() {
       setFile(null);
       setStatus("error");
       setUploadProgress(0);
-      setErrorMessage(".pptx 파일만 업로드할 수 있습니다.");
+      setErrorMessage(i18n.invalidFileType);
       return;
     }
 
@@ -112,11 +113,11 @@ export default function UploadForm() {
   };
 
   const primaryLabel = (() => {
-    if (!file) return "파일을 선택하세요";
-    if (status === "uploading") return `업로드 중 ${uploadProgress}%`;
-    if (status === "converting") return "PDF 변환 중...";
-    if (status === "success") return "변환 완료";
-    return "변환 시작";
+    if (!file) return i18n.labelSelectFile;
+    if (status === "uploading") return i18n.labelUploading(uploadProgress);
+    if (status === "converting") return i18n.labelConverting;
+    if (status === "success") return i18n.labelSuccess;
+    return i18n.labelConvert;
   })();
 
   return (
@@ -124,11 +125,11 @@ export default function UploadForm() {
       <div className="upload-card">
         <div className="upload-card-head">
           <div>
-            <p className="eyebrow">파일 업로드</p>
-            <h2>PPTX 파일을 PDF로 변환합니다</h2>
+            <p className="eyebrow">{i18n.uploadEyebrow}</p>
+            <h2>{i18n.uploadHeading}</h2>
           </div>
           <button className="ghost-button" onClick={() => fileInputRef.current?.click()} type="button">
-            파일 선택
+            {i18n.btnSelectFile}
           </button>
         </div>
 
@@ -150,7 +151,7 @@ export default function UploadForm() {
 
         <div className="selection-card">
           <div className="selection-copy">
-            <p className="eyebrow">선택한 파일</p>
+            <p className="eyebrow">{i18n.selectedEyebrow}</p>
             {file ? (
               <>
                 <strong>{file.name}</strong>
@@ -158,16 +159,16 @@ export default function UploadForm() {
               </>
             ) : (
               <>
-                <strong>선택된 파일이 없습니다</strong>
-                <span>PPTX 파일을 선택해주세요.</span>
+                <strong>{i18n.noFileSelected}</strong>
+                <span>{i18n.noFileHint}</span>
               </>
             )}
           </div>
           <div className="selection-badges">
-            <span className={`badge ${file ? "is-ready" : ""}`}>{file ? "준비됨" : "대기 중"}</span>
+            <span className={`badge ${file ? "is-ready" : ""}`}>{file ? i18n.badgeReady : i18n.badgeWaiting}</span>
             {file ? (
               <button className="text-button" disabled={isBusy} onClick={onClearFile} type="button">
-                선택 해제
+                {i18n.btnClear}
               </button>
             ) : null}
           </div>
@@ -183,10 +184,10 @@ export default function UploadForm() {
               download={`${file?.name?.replace(/\.pptx$/i, "") ?? "converted"}.pdf`}
               href={downloadUrl}
             >
-              PDF 다운로드
+              {i18n.btnDownload}
             </a>
           ) : (
-            <span className="action-hint">{file ? "변환을 시작할 수 있습니다." : "PPTX 파일을 선택해주세요."}</span>
+            <span className="action-hint">{file ? i18n.hintReady : i18n.hintNoFile}</span>
           )}
         </div>
       </div>

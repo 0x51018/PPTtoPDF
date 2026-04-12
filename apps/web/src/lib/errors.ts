@@ -1,23 +1,25 @@
+import { i18n } from "./i18n";
+
 export const mapApiError = (code?: string) => {
   switch (code) {
     case "INVALID_FILE_TYPE":
-      return "pptx 파일만 업로드할 수 있어요.";
+      return i18n.errInvalidFileType;
     case "FILE_TOO_LARGE":
-      return "파일 크기는 최대 50MB입니다.";
+      return i18n.errFileTooLarge;
     case "TOO_MANY_CONCURRENT_JOBS":
-      return "현재 변환 요청이 많아요. 잠시 후 다시 시도해주세요.";
+      return i18n.errTooManyConcurrent;
     case "CONVERSION_TIMEOUT":
-      return "변환 시간이 초과되었습니다.";
+      return i18n.errTimeout;
     case "CONVERSION_FAILED":
     case "OUTPUT_NOT_FOUND":
-      return "PPTX를 PDF로 변환하지 못했습니다.";
+      return i18n.errConversionFailed;
     case "LIBREOFFICE_NOT_FOUND":
-      return "서버에 LibreOffice가 없어 지금은 변환할 수 없습니다.";
+      return i18n.errLibreOfficeNotFound;
     case "NETWORK_ERROR":
-      return "서버에 연결하지 못했습니다. 네트워크 상태를 확인해주세요.";
+      return i18n.errNetwork;
     case "REQUEST_ABORTED":
-      return "요청이 중단되었습니다. 다시 시도해주세요.";
+      return i18n.errAborted;
     default:
-      return "요청 처리 중 오류가 발생했습니다.";
+      return i18n.errUnknown;
   }
 };
